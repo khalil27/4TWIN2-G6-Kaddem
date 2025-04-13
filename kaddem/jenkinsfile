@@ -5,7 +5,7 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
-                    sh ('npm install')
+                    sh ('nvm install')
                 }
             }
         }
@@ -13,7 +13,7 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script{
-                sh('npm test')
+                sh('nvm test')
                 }
             }
         }
@@ -21,7 +21,7 @@ pipeline {
 stage('Build application'){
 steps{
 script{
-sh('npm run build-dev')
+sh('nvm run build-dev')
 }
 }
 }
