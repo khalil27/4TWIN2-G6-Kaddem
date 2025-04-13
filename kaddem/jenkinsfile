@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven 3.8.5' // Assure-toi que cette version existe dans Jenkins > Global Tool Configuration
-        jdk 'JDK 17'         // Idem : configure une JDK dans Jenkins
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -34,11 +29,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build succeeded!'
+            echo '✅ Build succeeded!'
         }
         failure {
-            echo 'Build failed.'
+            echo '❌ Build failed.'
         }
     }
 }
-
