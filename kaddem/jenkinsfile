@@ -4,27 +4,36 @@ pipeline {
     stages {
         stage('Install dependencies') {
             steps {
-                script {
-                    sh ('nvm install')
-                }
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm install
+                    npm install
+                '''
             }
         }
 
         stage('Unit Test') {
             steps {
-                script{
-                sh('nvm test')
-                }
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm use
+                    npm test
+                '''
             }
         }
 
-stage('Build application'){
-steps{
-script{
-sh('nvm run build-dev')
-}
-}
-}
-
+        stage('Build application') {
+            steps {
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm use
+                    npm run build-dev
+                '''
+            }
+        }
     }
 }
+
