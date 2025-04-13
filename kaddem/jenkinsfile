@@ -1,38 +1,43 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven 3.8.5' // Assure-toi que cette version existe dans Jenkins > Global Tool Configuration
+        jdk 'JDK 17'         // Idem : configure une JDK dans Jenkins
+    }
+
     stages {
-        stage('Install dependencies') {
+        stage('Checkout') {
             steps {
-                sh '''
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                    nvm install
-                    npm install
-                '''
+                checkout scm
             }
         }
 
-        stage('Unit Test') {
+        stage('Build') {
             steps {
-                sh '''
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                    nvm use
-                    npm test
-                '''
+                sh 'mvn clean install'
             }
         }
 
-        stage('Build application') {
+        stage('Test') {
             steps {
-                sh '''
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                    nvm use
-                    npm run build-dev
-                '''
+                sh 'mvn test'
             }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build succeeded!'
+        }
+        failure {
+            echo 'Build failed.'
         }
     }
 }
