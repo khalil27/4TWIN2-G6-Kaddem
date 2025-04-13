@@ -1,38 +1,23 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Checkout') {
+
+
+        stage('Chekout') {
             steps {
-                checkout scm
+                script{
+                sh('nvm test')
+                }
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean install'
-            }
-        }
+stage('Build application'){
+steps{
+script{
+sh('nvm clean install')
+}
+}
+}
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Build succeeded!'
-        }
-        failure {
-            echo '❌ Build failed.'
-        }
     }
 }
