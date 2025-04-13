@@ -17,9 +17,9 @@ import java.util.Set;
 @Slf4j
 @Service
 public class ContratServiceImpl implements IContratService{
-@Autowired
-ContratRepository contratRepository;
-@Autowired
+	@Autowired
+	ContratRepository contratRepository;
+	@Autowired
 	EtudiantRepository etudiantRepository;
 	public List<Contrat> retrieveAllContrats(){
 		return (List<Contrat>) contratRepository.findAll();
@@ -57,8 +57,8 @@ ContratRepository contratRepository;
 			}
 		}
 		if (nbContratssActifs<=4){
-		ce.setEtudiant(e);
-		contratRepository.save(ce);}
+			ce.setEtudiant(e);
+			contratRepository.save(ce);}
 		return ce;
 	}
 	public 	Integer nbContratsValides(Date startDate, Date endDate){
@@ -90,7 +90,7 @@ ContratRepository contratRepository;
 		float difference_In_Time = endDate.getTime() - startDate.getTime();
 		float difference_In_Days = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
 		float difference_In_months =difference_In_Days/30;
-        List<Contrat> contrats=contratRepository.findAll();
+		List<Contrat> contrats=contratRepository.findAll();
 		float chiffreAffaireEntreDeuxDates=0;
 		for (Contrat contrat : contrats) {
 			if (contrat.getSpecialite()== Specialite.IA){
@@ -102,8 +102,8 @@ ContratRepository contratRepository;
 				chiffreAffaireEntreDeuxDates+=(difference_In_months*350);
 			}
 			else //if (contrat.getSpecialite()== Specialite.SECURITE)
-			 {
-				 chiffreAffaireEntreDeuxDates+=(difference_In_months*450);
+			{
+				chiffreAffaireEntreDeuxDates+=(difference_In_months*450);
 			}
 		}
 		return chiffreAffaireEntreDeuxDates;
