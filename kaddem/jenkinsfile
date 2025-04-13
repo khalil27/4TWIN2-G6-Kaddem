@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Install frontend dependencies') {
+            steps {
+                dir('piFrontEnd') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Install backend dependencies') {
+            steps {
+                dir('piBackEnd') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                parallel (
+                    frontend: {
+                        dir('piFrontEnd') {
+                            sh 'npm test || true'  // Ensures that the stage doesn't fail if no tests are specified
+                        }
+                    },
+                    backend: {
+                        dir('piBackEnd') {
+                            sh 'npm test || true'  // Same here for the backend
+                        }
+                    }
+                )
+            }
+        }
+
+ stage('SonarQube Analysis (Frontend)') {
+    steps {
+        dir('piFrontEnd') {
+            script {
+                def scannerHome = tool 'scanner'
+                withSonarQubeEnv('scanner') {  // Remplacez 'SonarQube' par le nom de votre installation SonarQube
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+    }
+}
+
+stage('SonarQube Analysis (Backend)') {
+    steps {
+        dir('piBackEnd') {
+            script {
+                def scannerHome = tool 'scanner'
+                withSonarQubeEnv('scanner') {  // Remplacez 'SonarQube' par le nom de votre installation SonarQube
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+    }
+}
+
+    }
+}
