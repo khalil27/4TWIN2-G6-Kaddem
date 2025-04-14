@@ -1,5 +1,8 @@
 pipeline {
     agent any
+     environment {
+        SONARQUBE = 'sonarkhalil' // Nom du serveur SonarQube configuré dans Jenkins
+    }
     
     stages {
         stage('Checkout') {
@@ -9,7 +12,7 @@ pipeline {
                     branches: [[name: '*/khalilayari']], 
                     userRemoteConfigs: [[
                         url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
-                        credentialsId: 'git1234'
+                        credentialsId: 'git12345'
                     ]]
                 ])
                 
@@ -65,12 +68,18 @@ pipeline {
                 '''
             }
         }
-                stage('MVN Sonarqube') {
+         stage('MVN Sonarqube') {
             steps {
-                sh 'cd kaddem/kaddem && mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
-
+                // Wrapper pour l'analyse SonarQube avec le token d'authentification
+                withCredentials([string(credentialsId: 'git12345', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('sonarqube1') {
+                        // Passe le token SonarQube à Maven
+                        sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} // Ajoute l'URL si nécessaire
+                    }
+                }
             }
         }
+
     }
     
     post {
