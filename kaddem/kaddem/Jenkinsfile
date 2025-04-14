@@ -71,6 +71,7 @@ pipeline {
                             cd "$POM_DIR"
                             echo "Launching SonarQube analysis with token $SONAR_TOKEN"
                             $HOME/maven-local/bin/mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.verbose=true
+                            -X
                         '''
                     }
                 }
