@@ -12,7 +12,7 @@ pipeline {
                     branches: [[name: '*/khalilayari']], 
                     userRemoteConfigs: [[
                         url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
-                        credentialsId: 'git12345'
+                        credentialsId: 'git1234'
                     ]]
                 ])
                 
