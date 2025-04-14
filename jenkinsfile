@@ -16,13 +16,17 @@ pipeline {
 
         stage('Build') {
             steps {
+            dir('kaddem') {
                 sh 'mvn clean compile'
+                }
             }
         }
 
         stage('Run Unit Tests') {
             steps {
+            dir('kaddem') {
                 sh 'mvn test'
+                }
             }
         }
     }
