@@ -1,35 +1,29 @@
 pipeline {
     agent any
 
-
-
     stages {
-        stage('Git') {
+        stage('Install dependencies') {
             steps {
-                git credentialsId: 'git123',
-                    branch: 'khalilayari',
-                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
+                script {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('Compile') {
+        stage('Unit Test') {
             steps {
-                sh 'mvn clean compile'
+                script {
+                    sh 'npm test'
+                }
             }
         }
 
-
-
-        stage('MVN Sonarqube') {
+        stage('Build application') {
             steps {
-                sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
+                script {
+                    sh 'npm run build-dev'
+                }
             }
         }
-
-
-
-
-
     }
-
 }
