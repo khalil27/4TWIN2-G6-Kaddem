@@ -1,42 +1,35 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-u root'
-        }
-    }
+    agent any
+
+
+
     stages {
-        stage('Install dependencies') {
+        stage('Git') {
             steps {
-                script {
-                    sh 'npm install'
-                }
+                git credentialsId: 'git123',
+                    branch: 'DhiaGhouma',
+                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
             }
-        }
-        stage('Unit Test') {
-            steps {
-                script {
-                    sh 'npm test'
-                }
-            }
-        }
-        stage('SonarQube Analysis') {
-          steps {
-            script {
-              def scannerHome = tool 'scanner'
-              withSonarQubeEnv('SonarQube') {
-                sh "${scannerHome}/bin/sonar-scanner"
-              }
-            }
-          }
         }
 
-        stage('Build application') {
+        stage('Compile') {
             steps {
-                script {
-                    sh 'npm run build-dev'
-                }
+                sh 'mvn clean compile'
             }
         }
+
+
+
+        stage('MVN Sonarqube') {
+            steps {
+                sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
+            }
+        }
+
+
+
+
+
     }
+
 }
