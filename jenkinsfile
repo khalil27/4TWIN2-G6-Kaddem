@@ -43,7 +43,7 @@ pipeline {
             }
         }
 
-        /*stage('Package') {
+        stage('Package') {
                     steps {
                         sh 'mvn package -DskipTests'
                     }
@@ -60,6 +60,6 @@ pipeline {
                             sh 'docker-compose build'
                         }
                     }
-                }*/
+                }
     }
 }
