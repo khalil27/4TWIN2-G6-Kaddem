@@ -59,11 +59,18 @@ pipeline {
             def scannerHome = tool 'scanner'
             withSonarQubeEnv {
                 sh """
-                    ${scannerHome}/bin/sonar-scanner
+                    cd kaddem/kaddem && \
+                    ${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectKey=sonar \
+                    -Dsonar.projectName=sonar \
+                    -Dsonar.sources=kaddem/kaddem/src \
+                    -Dsonar.java.binaries=kaddem/kaddem/target/classes
                 """
             }
         }
     }
+}
+
 }
 
 }
