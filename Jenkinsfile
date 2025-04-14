@@ -64,6 +64,9 @@ pipeline {
                     ${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectKey=sonar \
                     -Dsonar.projectName='sonar' \
+                    -Dsonar.sources=src
+                    -Dsonar.java.binaries=target/classes
+
                     -X
                 """
             }
