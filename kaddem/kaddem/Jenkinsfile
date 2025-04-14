@@ -64,16 +64,17 @@ pipeline {
             }
         }
 
+        stages {
+        ...
         stage('MVN Sonarqube') {
             steps {
-                withCredentials([string(credentialsId: 'git12345', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('sonarqube1') {
-                        sh '''
-                            POM_DIR=$(cat /tmp/pom_path.txt)
-                            cd "$POM_DIR"
-                            $HOME/maven-local/bin/mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}
-                        '''
-                    }
+                withSonarQubeEnv('sonarqube1') {
+                    sh """
+                        POM_DIR=\$(cat /tmp/pom_path.txt)
+                        cd "\$POM_DIR"
+                        \$HOME/maven-local/bin/mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
+                    """
+                }
                 }
             }
         }
