@@ -36,7 +36,9 @@ pipeline {
                       script {
                         def scannerHome = tool 'scanner'
                         withSonarQubeEnv('SonarQube') {
+                        dir('kaddem/kaddem'){
                           sh "${scannerHome}/bin/sonar-scanner"
+                        }
                         }
                       }
                     }
