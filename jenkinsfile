@@ -1,23 +1,25 @@
 pipeline {
     agent any
 
-stages{
+    tools {
+        maven 'M2_HOME'
+    }
 
-        stage('Chekout') {
+    stages {
+        stage('GIT') {
             steps {
-                script{
-                sh('nvm test')
-                }
+                git(
+                    branch: 'MtaallahKhalil-4TWIN2-G6',
+                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
+                )
             }
         }
-
-stage('Build application'){
-steps{
-script{
-sh('nvm clean install')
-}
-}
-}
+                stage('compile') {
+            steps {
+                echo "🛠️ Compilation du projet avec Maven..."
+                sh 'mvn clean compile'
+            }
+        }
 
     }
     }
