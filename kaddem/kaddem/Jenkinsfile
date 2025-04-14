@@ -67,7 +67,8 @@ pipeline {
         }
                 stage('MVN Sonarqube') {
             steps {
-                sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
+                sh 'cd kaddem/kaddem && mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
+
             }
         }
     }
