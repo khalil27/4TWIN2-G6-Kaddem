@@ -1,26 +1,23 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'M2_HOME'
-    }
-
     stages {
-        stage('GIT') {
+        stage('Checkout') {
             steps {
-                git(
-                    branch: 'MtaallahKhalil-4TWIN2-G6',
-                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
-                )
+                git 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
             }
         }
-                stage('compile') {
+
+        stage('Build') {
             steps {
-                echo "🛠️ Compilation du projet avec Maven..."
                 sh 'mvn clean compile'
             }
         }
 
+        stage('Run Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
     }
-    }
-
+}
