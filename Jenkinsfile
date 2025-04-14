@@ -55,19 +55,21 @@ pipeline {
             }
         }
        stage('SonarQube Analysis') {
-    steps {
-        script {
-            def scannerHome = tool 'scanner'
-            withSonarQubeEnv {
-                sh """
-                    cd kaddem/kaddem && \
-                    ${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=sonar \
-                    -Dsonar.projectName='sonar'
-                """
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            cd kaddem/kaddem && \
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=kaddem \
+                            -Dsonar.projectName='Kaddem' \
+                            -Dsonar.sources=src \
+                            -Dsonar.java.binaries=target/classes
+                        """
+                    }
+                }
             }
-        }
-    }
 }
 }
 }
