@@ -34,14 +34,16 @@ pipeline {
             steps {
                 script {
                     def scannerHome = tool 'scanner'
-                    withSonarQubeEnv {
+                    withSonarQubeEnv('SonarQube') {
+                    dir('kaddem/kaddem'){
                         sh "${scannerHome}/bin/sonar-scanner"
+                        }
                     }
                 }
             }
         }
 
-        stage('Package') {
+        /*stage('Package') {
                     steps {
                         sh 'mvn package -DskipTests'
                     }
@@ -58,6 +60,6 @@ pipeline {
                             sh 'docker-compose build'
                         }
                     }
-                }
+                }*/
     }
 }
