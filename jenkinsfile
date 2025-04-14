@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build') {
             steps {
-            dir('kaddem') {
+            dir('kaddem/kaddem') {
                 sh 'mvn clean compile'
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-            dir('kaddem') {
+            dir('kaddem/kaddem') {
                 sh 'mvn test'
                 }
             }
