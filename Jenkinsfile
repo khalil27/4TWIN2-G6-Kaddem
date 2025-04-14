@@ -6,7 +6,6 @@ pipeline {
     stages {
         stage('Git') {
             steps {
-                git credentialsId: 'git1234',
                     branch: 'khalilayari',
                     url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
             }
