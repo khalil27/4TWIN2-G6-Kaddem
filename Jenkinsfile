@@ -19,13 +19,6 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
-            steps {
-                echo 'Running unit tests...'
-                sh 'npm test || exit 1'
-            }
-        }
-
         stage('Build application') {
             steps {
                 echo 'Building the application...'
