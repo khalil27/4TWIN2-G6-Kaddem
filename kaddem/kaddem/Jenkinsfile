@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        SONARQUBE = 'sonarqube1' // Le bon nom de ton serveur SonarQube
+        SONARQUBE = 'sonarkhalil' // Le bon nom de ton serveur SonarQube
     }
 
     stages {
