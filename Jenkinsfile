@@ -66,15 +66,20 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'scanner'
-                    withSonarQubeEnv {
+    steps {
+        script {
+            def scannerHome = tool 'scanner'
+            withSonarQubeEnv {
+                dir('kaddem') {
+                    dir('kaddem') {
                         sh "${scannerHome}/bin/sonar-scanner"
                     }
                 }
             }
         }
+    }
+}
+
     }
 
     post {
