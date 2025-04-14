@@ -3,11 +3,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([ 
+                checkout([
                     $class: 'GitSCM', 
                     branches: [[name: '*/DhiaGhouma']], 
                     userRemoteConfigs: [[
-                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git', 
+                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
                         credentialsId: 'git123'
                     ]]
                 ])
@@ -54,23 +54,23 @@ pipeline {
                 '''
             }
         }
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'scanner'
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            cd kaddem/kaddem && \
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=kaddem \
-                            -Dsonar.projectName='Kaddem' \
-                            -Dsonar.sources=src \
-                            -Dsonar.java.binaries=target/classes
-                        """
-                    }
-                }
+       stage('SonarQube Analysis') {
+    steps {
+        script {
+            def scannerHome = tool 'scanner'
+            withSonarQubeEnv {
+                sh """
+                    cd kaddem/kaddem && \
+                    ${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectKey=sonar \
+                    -Dsonar.projectName='sonar'
+                """
             }
         }
+    }
+}
+}
+}
     }
     post {
         always {
