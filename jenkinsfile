@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
+                git branch: 'MtaallahKhalil-4TWIN2-G6',
+                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
             }
         }
 
