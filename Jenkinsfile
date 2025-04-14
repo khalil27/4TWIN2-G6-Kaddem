@@ -54,15 +54,23 @@ pipeline {
                 '''
             }
         }
-        stage('SonarQube Analysis') {
+       stage('SonarQube Analysis') {
     steps {
         script {
             def scannerHome = tool 'scanner'
             withSonarQubeEnv {
-                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectBaseDir=${WORKSPACE}/kaddem/kaddem"
+                sh """
+                    ${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectBaseDir=${WORKSPACE}/kaddem/kaddem \
+                    -Dsonar.projectKey=sonar \
+                    -Dsonar.projectName='sonar' \
+                    -Dsonar.sources=src/main \
+                    -Dsonar.java.binaries=target/classes
+                """
             }
         }
     }
+}
 }
     }
     post {
