@@ -1,65 +1,33 @@
 pipeline {
     agent any
 
+    tools {
+    maven 'M2_HOME'
+
+    }
+
     stages {
-        stage('Install frontend dependencies') {
+        stage('Checkout') {
             steps {
-                dir('piFrontEnd') {
-                    sh 'npm install'
-                }
+                git branch: 'YosrMekki-4TWIN2-G6',
+                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
             }
         }
 
-        stage('Install backend dependencies') {
+        stage('Build') {
             steps {
-                dir('piBackEnd') {
-                    sh 'npm install'
+            dir('kaddem/kaddem') {
+                sh 'mvn clean compile'
                 }
             }
         }
 
-        stage('Unit Test') {
+        stage('Run Unit Tests') {
             steps {
-                parallel (
-                    frontend: {
-                        dir('piFrontEnd') {
-                            sh 'npm test || true'  // Ensures that the stage doesn't fail if no tests are specified
-                        }
-                    },
-                    backend: {
-                        dir('piBackEnd') {
-                            sh 'npm test || true'  // Same here for the backend
-                        }
-                    }
-                )
-            }
-        }
-
- stage('SonarQube Analysis (Frontend)') {
-    steps {
-        dir('piFrontEnd') {
-            script {
-                def scannerHome = tool 'scanner'
-                withSonarQubeEnv('scanner') {  // Remplacez 'SonarQube' par le nom de votre installation SonarQube
-                    sh "${scannerHome}/bin/sonar-scanner"
+            dir('kaddem/kaddem') {
+                sh 'mvn test'
                 }
             }
         }
-    }
-}
-
-stage('SonarQube Analysis (Backend)') {
-    steps {
-        dir('piBackEnd') {
-            script {
-                def scannerHome = tool 'scanner'
-                withSonarQubeEnv('scanner') {  // Remplacez 'SonarQube' par le nom de votre installation SonarQube
-                    sh "${scannerHome}/bin/sonar-scanner"
-                }
-            }
-        }
-    }
-}
-
     }
 }
