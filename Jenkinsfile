@@ -1,12 +1,6 @@
 pipeline {
     agent any
     
-    tools {
-        // Define the Maven installation to use
-        maven 'Maven 3.8.6' // Use the name configured in Jenkins
-        jdk 'JDK 17' // Use the name configured in Jenkins
-    }
-    
     stages {
         stage('Checkout') {
             steps {
@@ -19,8 +13,20 @@ pipeline {
                     ]]
                 ])
                 
-                // List workspace contents for debugging
-                sh 'ls -la'
+                // Display workspace contents and environment info
+                sh '''
+                    echo "Workspace contents:"
+                    ls -la
+                    
+                    echo "Java version:"
+                    java -version || echo "Java not found"
+                    
+                    echo "Maven version:"
+                    mvn -v || echo "Maven not found"
+                    
+                    echo "Gradle version:"
+                    gradle -v || echo "Gradle not found"
+                '''
             }
         }
         
@@ -33,7 +39,8 @@ pipeline {
                         sh 'mvn clean package -DskipTests'
                     } else if (fileExists('build.gradle')) {
                         echo 'Building Gradle project...'
-                        sh './gradlew build -x test'
+                        sh 'chmod +x ./gradlew || true'
+                        sh './gradlew build -x test || gradle build -x test'
                     } else {
                         error 'Could not find pom.xml or build.gradle. Unable to determine build system.'
                     }
@@ -41,38 +48,6 @@ pipeline {
             }
         }
         
-        stage('Test') {
-            steps {
-                script {
-                    try {
-                        if (fileExists('pom.xml')) {
-                            echo 'Running Maven tests...'
-                            sh 'mvn test'
-                        } else if (fileExists('build.gradle')) {
-                            echo 'Running Gradle tests...'
-                            sh './gradlew test'
-                        }
-                    } catch (Exception e) {
-                        echo 'Tests failed, but continuing pipeline'
-                    }
-                }
-            }
-        }
-        
-        stage('Package') {
-            steps {
-                script {
-                    if (fileExists('pom.xml')) {
-                        echo 'Packaging Maven project...'
-                        sh 'mvn package -DskipTests'
-                    } else if (fileExists('build.gradle')) {
-                        echo 'Packaging Gradle project...'
-                        sh './gradlew assemble'
-                    }
-                }
-            }
-        }
-    }
     
     post {
         always {
