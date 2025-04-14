@@ -26,10 +26,8 @@ pipeline {
         stage('Download Maven') {
             steps {
                 sh '''
-                    # Create a local directory for Maven
                     mkdir -p $HOME/maven-local
                     
-                    # Download Maven binary (only if not already downloaded)
                     if [ ! -f $HOME/maven-local/bin/mvn ]; then
                         echo "Downloading Maven..."
                         wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
@@ -37,7 +35,6 @@ pipeline {
                         rm apache-maven-3.9.6-bin.tar.gz
                     fi
                     
-                    # Verify Maven is working
                     $HOME/maven-local/bin/mvn -version
                 '''
             }
@@ -46,15 +43,11 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    # Find the pom.xml file
                     POM_FILE=$(find . -name "pom.xml" | head -1)
                     
                     if [ -n "$POM_FILE" ]; then
-                        # Get the directory containing pom.xml
                         POM_DIR=$(dirname "$POM_FILE")
                         echo "Building Maven project in directory: $POM_DIR"
-                        
-                        # Navigate to the directory and build
                         cd "$POM_DIR"
                         $HOME/maven-local/bin/mvn clean package -DskipTests
                     else
@@ -66,20 +59,17 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-    steps {
-        script {
-            def scannerHome = tool 'scanner'
-            withSonarQubeEnv {
-                dir('kaddem') {
-                    dir('kaddem') {
-                        sh "${scannerHome}/bin/sonar-scanner"
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv {
+                        dir('kaddem/kaddem') {
+                            sh "${scannerHome}/bin/sonar-scanner"
+                        }
                     }
                 }
             }
         }
-    }
-}
-
     }
 
     post {
