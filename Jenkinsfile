@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
@@ -22,7 +21,6 @@ pipeline {
                 '''
             }
         }
-
         stage('Download Maven') {
             steps {
                 sh '''
@@ -39,7 +37,6 @@ pipeline {
                 '''
             }
         }
-
         stage('Build') {
             steps {
                 sh '''
@@ -57,7 +54,6 @@ pipeline {
                 '''
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -71,7 +67,6 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
