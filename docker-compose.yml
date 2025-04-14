@@ -14,7 +14,7 @@ services:
 
   app:
     build: .
-    image: 192.168.33.10:8083/5SIM1-G1-Kaddem:1.0
+    image: 192.168.33.10:8083/4TWIN2-G6-Kaddem:1.0
     restart: always
     container_name: kaddem-app
     ports:
