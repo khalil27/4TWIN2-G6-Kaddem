@@ -44,5 +44,30 @@ pipeline {
                     }
                   }
 
+                  stage('Package') {
+                      steps {
+                          dir('kaddem/kaddem') {
+                              sh 'mvn clean package -DskipTests'
+                          }
+                      }
+                  }
+stage('Docker Build & Push') {
+    steps {
+        script {
+            dir('kaddem/kaddem') {
+                def imageName = 'khalil27/kaddem-app' // Remplace avec ton nom d'image DockerHub
+                def imageTag = "latest"
+
+                sh "docker build -t ${imageName}:${imageTag} ."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh "docker push ${imageName}:${imageTag}"
+                }
+            }
+        }
+    }
+}
+
+
     }
 }
