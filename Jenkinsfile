@@ -21,6 +21,7 @@ pipeline {
                     find . -name "pom.xml" -o -name "build.gradle"
                 '''
             }
+            
         }
         
         stage('Download Maven') {
@@ -62,6 +63,11 @@ pipeline {
                         exit 1
                     fi
                 '''
+            }
+        }
+                stage('MVN Sonarqube') {
+            steps {
+                sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Kha51300906@ -Dmaven.test.skip=true'
             }
         }
     }
