@@ -15,7 +15,6 @@ pipeline {
                 sh '''
                     echo "Workspace contents:"
                     ls -la
-                    
                     echo "Looking for build files:"
                     find . -name "pom.xml" -o -name "build.gradle"
                 '''
@@ -55,25 +54,21 @@ pipeline {
             }
         }
         stage('SonarQube Analysis') {
-    steps {
-        script {
-            def scannerHome = tool 'scanner'
-            withSonarQubeEnv {
-                sh """
-                    cd kaddem/kaddem && \
-                    ${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=sonar \
-                    -Dsonar.projectName='sonar' \
-                    -Dsonar.sources=src
-                    -Dsonar.java.binaries=target/classes
-
-                    -X
-                """
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv {
+                        sh """
+                            cd kaddem/kaddem && \
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=sonar \
+                            -Dsonar.projectName=sonar \
+                            -Dsonar.sources=kaddem/kaddem/src
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
     }
     post {
         always {
