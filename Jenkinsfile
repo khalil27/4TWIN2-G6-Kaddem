@@ -13,76 +13,61 @@ pipeline {
                     ]]
                 ])
                 
-                // Display workspace contents and find build files
                 sh '''
                     echo "Workspace contents:"
                     ls -la
                     
                     echo "Looking for build files:"
                     find . -name "pom.xml" -o -name "build.gradle"
-                    
-                    echo "Java version:"
-                    java -version || echo "Java not found"
                 '''
             }
         }
         
-        stage('Setup Maven') {
+        stage('Download Maven') {
             steps {
-                // Download and set up Maven locally without sudo
                 sh '''
-                    if ! command -v mvn &> /dev/null; then
-                        echo "Setting up Maven locally..."
-                        
-                        # Create a directory for Maven
-                        mkdir -p $WORKSPACE/maven
-                        
-                        # Download Maven
-                        curl -s https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o $WORKSPACE/maven.tar.gz
-                        
-                        # Extract Maven
-                        tar -xzf $WORKSPACE/maven.tar.gz -C $WORKSPACE/maven --strip-components=1
-                        
-                        # Verify installation
-                        $WORKSPACE/maven/bin/mvn -version
+                    # Create a local directory for Maven
+                    mkdir -p $HOME/maven-local
+                    
+                    # Download Maven binary (only if not already downloaded)
+                    if [ ! -f $HOME/maven-local/bin/mvn ]; then
+                        echo "Downloading Maven..."
+                        wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+                        tar -xzf apache-maven-3.9.6-bin.tar.gz -C $HOME/maven-local --strip-components=1
+                        rm apache-maven-3.9.6-bin.tar.gz
                     fi
+                    
+                    # Verify Maven is working
+                    $HOME/maven-local/bin/mvn -version
                 '''
             }
         }
         
         stage('Build') {
             steps {
-                script {
-                    def pomFile = sh(script: 'find . -name "pom.xml" | head -1', returnStdout: true).trim()
+                sh '''
+                    # Find the pom.xml file
+                    POM_FILE=$(find . -name "pom.xml" | head -1)
                     
-                    if (pomFile) {
-                        echo "Found Maven project at: ${pomFile}"
-                        def pomDir = sh(script: "dirname ${pomFile}", returnStdout: true).trim()
+                    if [ -n "$POM_FILE" ]; then
+                        # Get the directory containing pom.xml
+                        POM_DIR=$(dirname "$POM_FILE")
+                        echo "Building Maven project in directory: $POM_DIR"
                         
-                        echo "Building Maven project in directory: ${pomDir}"
-                        sh """
-                            cd ${pomDir}
-                            export MAVEN_OPTS="-Xmx1024m"
-                            
-                            # Try using Maven if installed globally
-                            if command -v mvn &> /dev/null; then
-                                mvn clean package -DskipTests
-                            else
-                                # Use our local Maven installation
-                                $WORKSPACE/maven/bin/mvn clean package -DskipTests
-                            fi
-                        """
-                    } else {
-                        error "Could not find pom.xml in any directory. Unable to determine build system."
-                    }
-                }
+                        # Navigate to the directory and build
+                        cd "$POM_DIR"
+                        $HOME/maven-local/bin/mvn clean package -DskipTests
+                    else
+                        echo "No pom.xml file found!"
+                        exit 1
+                    fi
+                '''
             }
         }
     }
     
     post {
         always {
-            // Archive the build artifacts
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
         }
         success {
