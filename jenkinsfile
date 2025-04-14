@@ -35,14 +35,16 @@ pipeline {
             checkout scm
             }
           }
-          stage('SonarQube Analysis') {
-          steps{
-            def mvn = tool 'M2_HOME';
-            withSonarQubeEnv() {
-              sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=mavenapp -Dsonar.projectName='mavenapp'"
-            }
-            }
-          }
+           stage('SonarQube Analysis') {
+                    steps {
+                      script {
+                        def scannerHome = tool 'scanner'
+                        withSonarQubeEnv('SonarQube') {
+                          sh "${scannerHome}/bin/sonar-scanner"
+                        }
+                      }
+                    }
+                  }
 
     }
 }
