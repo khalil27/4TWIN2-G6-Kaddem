@@ -64,8 +64,7 @@ pipeline {
             }
         }
 
-        stages {
-        ...
+
         stage('MVN Sonarqube') {
             steps {
                 withSonarQubeEnv('sonarqube1') {
