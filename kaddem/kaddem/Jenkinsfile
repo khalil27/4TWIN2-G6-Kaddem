@@ -2,6 +2,8 @@ pipeline {
     agent any
     environment {
         SONARQUBE = 'sonarkhalil' // Le bon nom de ton serveur SonarQube
+            SONAR_TOKEN = credentials('git12345') // injecte directement ici
+
     }
 
     stages {
