@@ -2,23 +2,28 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'MtaallahKhalil-4TWIN2-G6',
-                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
+            stage('Install dependencies') {
+                steps {
+                    script {
+                        sh 'npm install'
+                    }
+                }
             }
-        }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean compile'
-            }
-        }
+         stage('Unit Test') {
+                    steps {
+                        script {
+                            sh 'npm test'
+                        }
+                    }
+                }
 
-        stage('Run Unit Tests') {
-            steps {
-                sh 'mvn test'
-            }
-        }
+        stage('Build application') {
+                    steps {
+                        script {
+                            sh 'npm run build-dev'
+                        }
+                    }
+                }
     }
 }
