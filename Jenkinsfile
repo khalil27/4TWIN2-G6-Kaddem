@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
@@ -22,7 +22,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Download Maven') {
             steps {
                 sh '''
@@ -42,7 +42,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Build') {
             steps {
                 sh '''
@@ -64,8 +64,19 @@ pipeline {
                 '''
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
     }
-    
+
     post {
         always {
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
