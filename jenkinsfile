@@ -77,8 +77,8 @@ stage('Build Docker Image') {
 }
 
 
-        //
-        Uploading Docker images into Nexus Registry
+
+       
      stage('Push to Nexus') {
                 steps {
                     script {
