@@ -6,10 +6,11 @@ pipeline {
 
     }
       environment {
-            registryCredentials = "nexus"
-            registry = "192.168.33.10:8083"
-            }
-
+              registry = "192.168.33.10:8083"
+              registryCredentials = "nexus"
+              imageName = "kaddem-app"
+              imageTag = "1.0"
+          }
     stages {
         stage('Checkout') {
             steps {
@@ -64,20 +65,29 @@ pipeline {
                 }
             }
         }
+stage('Build Docker Image') {
+    steps {
+        script {
+            dir('kaddem/kaddem') {
+                sh "docker build -t ${imageName}:${imageTag} ."
+                sh "docker tag ${imageName}:${imageTag} ${registry}/${imageName}:${imageTag}"
+            }
+        }
+    }
+}
 
 
         //
         Uploading Docker images into Nexus Registry
-        stage('Deploy  to Nexus') {
-        steps{
-        script {
-        docker.withRegistry("http://"+registry,
-        registryCredentials ) {
-        sh('docker push $registry/nodemongoapp:5.0 ')
-        }
-        }
-        }
-        }
+     stage('Push to Nexus') {
+                steps {
+                    script {
+                        docker.withRegistry("http://${registry}", registryCredentials) {
+                            sh "docker push ${registry}/${imageName}:${imageTag}"
+                        }
+                    }
+                }
+            }
 
 
     }
