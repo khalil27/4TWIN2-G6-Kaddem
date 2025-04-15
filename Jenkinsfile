@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'maven-local'
-        jdk 'jdk-17'
-    }
-
     environment {
         MAVEN_HOME = '/var/lib/jenkins/maven-local'
     }
@@ -30,7 +25,7 @@ pipeline {
                     def pomDir = pomFile ? dirname(pomFile) : ''
                     echo "Building Maven project in directory: ${pomDir}"
                     dir(pomDir) {
-                        sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
+                        sh "/var/lib/jenkins/maven-local/bin/mvn clean package -DskipTests"
                     }
                 }
             }
