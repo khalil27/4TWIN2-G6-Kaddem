@@ -1,8 +1,6 @@
 pipeline {
     agent any
-    environment {
-        SONARQUBE = 'sonarkhalil' // Nom du serveur SonarQube
-    }
+
 
     stages {
         stage('Checkout') {
@@ -62,21 +60,21 @@ pipeline {
             }
         }
 
-        stage('MVN Sonarqube') {
+stage('MVN Sonarqube') {
             steps {
-                withCredentials([string(credentialsId: 'git12345', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('sonarkhalil') {
+                withSonarQubeEnv('sq1') {
+                    withCredentials([string(credentialsId: 'git12345', variable: 'jenkins')]) {
                         sh '''
-                            POM_DIR=$(cat /tmp/pom_path.txt)
-                            cd "$POM_DIR"
-                            echo "Launching SonarQube analysis with token $SONAR_TOKEN"
-                            $HOME/maven-local/bin/mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.verbose=true -X
-                        '''
-                    }
-                }
-            }
-        }
-    }
+                            mvn clean verify sonar:sonar \
+                            -Dsonar.token=$jenkins
+'''
+
+
+}
+}
+}
+}
+}
 
     post {
         always {
