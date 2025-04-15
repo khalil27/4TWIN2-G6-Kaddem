@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REGISTRY = "192.168.33.10:8083"  // Your Nexus Docker registry URL
+        DOCKER_REGISTRY = "192.168.33.10:8083"  // Nexus Docker registry URL
         DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
     }
 
@@ -74,6 +74,25 @@ pipeline {
                 }
             }
         }
+
+                stage('Push Docker Image to Nexus') {
+                    steps {
+                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                            script {
+                                sh '''
+                                    echo "🔐 Connexion à Nexus Docker Registry"
+                                    echo "$NEXUS_PASS" | docker login 192.168.33.10:8083 -u "$NEXUS_USER" --password-stdin
+
+                                    echo "📤 Push de l'image vers Nexus"
+                                    docker push 192.168.33.10:8083/kaddem/kaddem-app:latest
+
+                                    echo "🚪 Déconnexion de Nexus"
+                                    docker logout 192.168.33.10:8083
+                                '''
+                            }
+                        }
+                    }
+                }
 
 
          stage('SonarQube Analysis') {
