@@ -92,6 +92,14 @@ pipeline {
             }
         }
 
+        stage('Deploy JAR to Nexus') {
+                       steps {
+
+                                    sh "mvn deploy -DaltDeploymentRepository=deploymentRepo::default::${NEXUS_REPO}"
+
+                            }
+                        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
