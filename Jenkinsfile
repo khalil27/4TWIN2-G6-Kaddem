@@ -54,7 +54,7 @@ pipeline {
       stage('Build Docker Image') {
     steps {
         script {
-            def customImage = docker.build("kaddem-app:latest", ".")
+def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem/")
         }
     }
 }
