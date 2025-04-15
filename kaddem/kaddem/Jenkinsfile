@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    environment {
+        SONARQUBE = 'sonarkhalil' // Nom de l'installation SonarQube dans Jenkins
+    }
 
     stages {
         stage('Checkout') {
@@ -60,21 +63,25 @@ pipeline {
             }
         }
 
-stage('MVN Sonarqube') {
+        stage('MVN Sonarqube') {
             steps {
-                withSonarQubeEnv('sonarkhalil') {
-                    withCredentials([string(credentialsId: 'git12345', variable: 'jenkins')]) {
+                withCredentials([string(credentialsId: 'git12345', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv("${SONARQUBE}") {
                         sh '''
-                            mvn clean verify sonar:sonar \
-                            -Dsonar.token=$jenkins
-'''
+                            POM_DIR=$(cat /tmp/pom_path.txt)
+                            cd "$POM_DIR"
 
+                            echo "📊 Lancement de l’analyse SonarQube dans $POM_DIR"
 
-}
-}
-}
-}
-}
+                            $HOME/maven-local/bin/mvn clean verify sonar:sonar \
+                              -Dsonar.token=$SONAR_TOKEN \
+                              -Dsonar.verbose=true
+                        '''
+                    }
+                }
+            }
+        }
+    }
 
     post {
         always {
