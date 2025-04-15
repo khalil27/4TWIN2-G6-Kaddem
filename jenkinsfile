@@ -1,10 +1,13 @@
 pipeline {
     agent any
     environment {
+        imageName = "kaddem-app"
+        imageTag = "1.0"
         registryCredentials = "nexus-credentials"
         registry = "192.168.33.10:8083"
         DOCKER_COMPOSE_VERSION = '1.29.2'
         NEXUS_REPO = "http://192.168.33.10:8083/repository/maven-snapshots/"
+
     }
 
     stages {
@@ -45,6 +48,13 @@ pipeline {
                 }
             }
         }
+        stage('Run Unit Tests') {
+                    steps {
+                    dir('kaddem/kaddem') {
+                        sh 'mvn test'
+                        }
+                    }
+                }
 
         stage('Install Docker Compose (if needed)') {
             steps {
@@ -72,57 +82,51 @@ pipeline {
             }
         }
 
-        stage('Tag Docker Image for Nexus') {
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('kaddem/kaddem') {
+                        sh "docker build -t ${imageName}:${imageTag} ."
+                        sh "docker tag ${imageName}:${imageTag} ${registry}/${imageName}:${imageTag}"
+                    }
+                }
+            }
+        }
+
+
+        /*stage('Tag Docker Image for Nexus') {
             steps {
                 sh '''
                     echo " Tagging the image for Nexus"
                     docker tag mekkiyosr/kaddem-app:latest ${registry}/kaddem/kaddem-app:latest
                 '''
             }
-        }
+        }*/
 
-        stage('Push Docker Image to Nexus') {
-            steps {
-                script {
-                    docker.withRegistry("http://${registry}", registryCredentials) {
-                        def customImage = docker.image("${registry}/kaddem/kaddem-app:latest")
-                        customImage.push()
+        stage('Push to Nexus') {
+                steps {
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        script {
+                            sh """
+                                docker login -u $USERNAME -p $PASSWORD ${registry}
+                                docker push ${registry}/${imageName}:${imageTag}
+                            """
+                        }
                     }
                 }
             }
+
+        stage('Run application ') {
+        steps{
+        script {
+        docker.withRegistry("http://"+registry, registryCredentials
+        ) {
+        sh('docker pull $registry/kaddem-app:1.0 ')
+        sh('docker-compose up -d ')
         }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    docker.withRegistry("http://${registry}", registryCredentials) {
-                        sh """
-                            echo "🛠 Pulling image from Nexus..."
-                            docker pull ${registry}/kaddem/kaddem-app:latest
-
-                            echo " Tagging pulled image with local name..."
-                            docker tag ${registry}/kaddem/kaddem-app:latest kaddem_yosrmekki-4twin2-g6_kaddem-app
-
-                            echo "Restarting services with Docker Compose..."
-                            docker-compose -f docker-compose.yml down || true
-                            docker-compose -f docker-compose.yml up -d
-                        """
-                    }
-                }
-            }
         }
-
-
-        stage('Deploy JAR to Nexus') {
-            steps {
-                dir('kaddem/kaddem') {
-                    sh "$HOME/maven-local/bin/mvn deploy -DaltDeploymentRepository=deploymentRepo::default::${NEXUS_REPO}"
-                }
-            }
         }
-
-
-
+        }
 
         stage('SonarQube Analysis') {
             steps {
