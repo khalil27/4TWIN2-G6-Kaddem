@@ -86,25 +86,21 @@ stage('Build') {
         }
 stage('MVN Nexus') {
     steps {
-        sh '''
-            # Afficher la structure du répertoire pour vérifier où nous nous trouvons
-            echo "Affichage de la structure du répertoire avant le déploiement :"
-            ls -la
-
-            # Vérifier si le fichier pom.xml est présent avant d'exécuter deploy
-            POM_FILE="kaddem/kaddem/pom.xml"
-            
-            if [ -f "$POM_FILE" ]; then
-                echo "Déploiement Maven dans kaddem/kaddem"
-                cd kaddem/kaddem  # Changer de répertoire
-                $HOME/maven-local/bin/mvn deploy -Dmaven.test.skip=true
-            else
-                echo "No pom.xml found in kaddem/kaddem! Cannot deploy."
-                exit 1
-            fi
-        '''
+        withCredentials([
+            string(credentialsId: 'NEXUS_USER', variable: 'NEXUS_USER'),
+            string(credentialsId: 'NEXUS_PASS', variable: 'NEXUS_PASS')
+        ]) {
+            configFileProvider([configFile(fileId: 'maven-settings-nexus', variable: 'SETTINGS_XML')]) {
+                sh '''
+                    echo "Déploiement Maven avec settings.xml personnalisé"
+                    cd kaddem/kaddem
+                    $HOME/maven-local/bin/mvn deploy -Dmaven.test.skip=true --settings $SETTINGS_XML
+                '''
+            }
+        }
     }
 }
+
 
     }
 
