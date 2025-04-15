@@ -1,7 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REGISTRY = "192.168.33.10:8083"
+        DOCKER_REGISTRY = "docker.io"
+        DOCKER_IMAGE = "dhiaghouma/kaddem-app:latest"  // Your Docker Hub username/repo name
     }
 
     stages {
@@ -15,13 +16,6 @@ pipeline {
                         credentialsId: 'git123'
                     ]]
                 ])
-                
-                sh '''
-                    echo "Workspace contents:"
-                    ls -la
-                    echo "Looking for pom.xml and Dockerfile:"
-                    find . -name "pom.xml" -o -name "Dockerfile"
-                '''
             }
         }
 
@@ -51,28 +45,24 @@ pipeline {
             }
         }
 
-     stage('Build Docker Image') {
-    steps {
-        script {
-            // Set the correct build context to "kaddem/kaddem/"
-            def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem/")  // <-- Context is "kaddem/kaddem/"
-        }
-    }
-}
-
-
-stage('Push Docker Image to Nexus') {
-    steps {
-        script {
-            docker.withRegistry("http://${DOCKER_REGISTRY}", "nexus") {
-                def customImage = docker.image("kaddem-app:latest")
-                customImage.push("latest")
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def customImage = docker.build("${DOCKER_IMAGE}", "kaddem/kaddem/")
+                }
             }
         }
-    }
-}
 
-
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", "docker-hub-credentials") {
+                        def customImage = docker.image("${DOCKER_IMAGE}")
+                        customImage.push("latest")
+                    }
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {
