@@ -1,11 +1,10 @@
 pipeline {
     agent any
     environment {
-        registryCredentials = "nexus"
+        registryCredentials = "nexus-credentials"
         registry = "192.168.33.10:8083"
-        //DOCKER_REGISTRY = "192.168.33.10:8083"  // Nexus Docker registry URL
-        //DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
         DOCKER_COMPOSE_VERSION = '1.29.2'
+        NEXUS_REPO = "http://192.168.33.10:8083/repository/maven-snapshots/"
     }
 
     stages {
@@ -28,7 +27,7 @@ pipeline {
                     mkdir -p $HOME/maven-local
 
                     if [ ! -f $HOME/maven-local/bin/mvn ]; then
-                        echo "Downloading Maven..."
+                        echo "📥 Downloading Maven..."
                         wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
                         tar -xzf apache-maven-3.9.6-bin.tar.gz -C $HOME/maven-local --strip-components=1
                         rm apache-maven-3.9.6-bin.tar.gz
@@ -41,122 +40,89 @@ pipeline {
 
         stage('Build') {
             steps {
+                dir('kaddem/kaddem') {
+                    sh '$HOME/maven-local/bin/mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Install Docker Compose (if needed)') {
+            steps {
                 sh '''
-                    cd kaddem/kaddem
-                    $HOME/maven-local/bin/mvn clean package -DskipTests
+                    if ! docker-compose --version > /dev/null 2>&1; then
+                        echo "🛠 Installing Docker Compose..."
+                        sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                        sudo chmod +x /usr/local/bin/docker-compose
+                    fi
+                    docker-compose --version
                 '''
             }
         }
 
-        /*stage('Build Docker Image') {
+        stage('Build and Run with Docker Compose') {
             steps {
                 dir('kaddem/kaddem') {
                     sh '''
-                        echo "📦 Construction de l'image Docker"
-                        docker build -t mekkiyosr/kaddem-app:latest .
+                        echo "🔧 Building and launching services via Docker Compose"
+                        docker-compose down || true
+                        docker-compose build
+                        docker-compose up -d
                     '''
                 }
             }
         }
 
-        stage('Push Docker Image to Docker Hub') {
+        stage('Tag Docker Image for Nexus') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        sh '''
-                            echo "🔐 Connexion à Docker Hub"
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                sh '''
+                    echo "🏷️ Tagging the image for Nexus"
+                    docker tag mekkiyosr/kaddem-app:latest ${registry}/kaddem/kaddem-app:latest
+                '''
+            }
+        }
 
-                            echo "📤 Push de l'image vers Docker Hub"
-                            docker push mekkiyosr/kaddem-app:latest
-
-                            echo "🚪 Déconnexion de Docker Hub"
-                            docker logout
-                        '''
+        stage('Push Docker Image to Nexus') {
+            steps {
+                script {
+                    docker.withRegistry("http://${registry}", registryCredentials) {
+                        def customImage = docker.image("${registry}/kaddem/kaddem-app:latest")
+                        customImage.push()
                     }
                 }
             }
-        }*/
-        stage('Install Docker Compose (if needed)') {
-                    steps {
-                        sh '''
-                            if ! docker-compose --version; then
-                                echo "🛠 Installation de Docker Compose"
-                                sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-                                sudo chmod +x /usr/local/bin/docker-compose
-                                docker-compose --version
-                            fi
-                        '''
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv('SonarQube') {
+                        dir('kaddem/kaddem') {
+                            sh "${scannerHome}/bin/sonar-scanner"
+                        }
                     }
                 }
+            }
+        }
 
-                stage('Build and Run with Docker Compose') {
-                            steps {
-                                dir('kaddem/kaddem') {
-                                    sh '''
-                                        echo "🔧 Build et lancement des services via Docker Compose"
-                                        docker-compose down || true
-                                        docker-compose build
-                                        docker-compose up -d
-                                    '''
-                                }
-                            }
-                        }
+        stage('Package') {
+            steps {
+                dir('kaddem/kaddem') {
+                    sh '$HOME/maven-local/bin/mvn clean package -DskipTests'
+                }
+            }
+        }
+    }
 
-         stage('Tag Docker Image for Nexus') {
-                     steps {
-                         sh '''
-                             echo "🏷️ Tag de l'image pour Nexus"
-                             sh 'docker tag mekkiyosr/kaddem-app:latest 192.168.33.10:8083/kaddem/kaddem-app:latest'
-                         '''
-                     }
-                 }
-
-         stage('Push Docker Image to Nexus') {
-                             steps {
-                                 script {
-                                     def registry = "192.168.33.10:8083"
-                                     def imageName = "kaddem/kaddem-app:latest"
-                                     def registryCredentials = "nexus-credentials"
-
-                                     docker.withRegistry("http://${registry}", registryCredentials) {
-                                         def customImage = docker.image("${registry}/${imageName}")
-                                         customImage.push()
-                                     }
-                                 }
-                             }
-                         }
-
-         stage('SonarQube Analysis') {
-                            steps {
-                              script {
-                                def scannerHome = tool 'scanner'
-                                withSonarQubeEnv('SonarQube') {
-                                dir('kaddem/kaddem'){
-                                  sh "${scannerHome}/bin/sonar-scanner"
-                                }
-                                }
-                              }
-                            }
-                          }
-
-                          stage('Package') {
-                              steps {
-                                  dir('kaddem/kaddem') {
-                                      sh 'mvn clean package -DskipTests'
-                                  }
-                              }
-                          }
-         }
     post {
         always {
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
         }
         success {
-            echo 'Pipeline completed successfully.'
+            echo '✅ Pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed. Please check the logs for more information.'
+            echo '❌ Pipeline failed. Please check the logs for more information.'
         }
     }
 }
