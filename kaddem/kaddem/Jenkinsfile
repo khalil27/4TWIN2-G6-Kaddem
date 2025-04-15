@@ -84,11 +84,27 @@ stage('Build') {
                 }
             }
         }
-        stage('MVN Nexus') {
-            steps {
-                sh 'mvn deploy -Dmaven.test.skip=true'
-            }
-        }
+stage('MVN Nexus') {
+    steps {
+        sh '''
+            # Afficher la structure du répertoire pour vérifier où nous nous trouvons
+            echo "Affichage de la structure du répertoire avant le déploiement :"
+            ls -la
+
+            # Vérifier si le fichier pom.xml est présent avant d'exécuter deploy
+            POM_FILE="kaddem/kaddem/pom.xml"
+            
+            if [ -f "$POM_FILE" ]; then
+                echo "Déploiement Maven dans kaddem/kaddem"
+                cd kaddem/kaddem
+                $HOME/maven-local/bin/mvn deploy -Dmaven.test.skip=true
+            else
+                echo "No pom.xml found in kaddem/kaddem! Cannot deploy."
+                exit 1
+            fi
+        '''
+    }
+}
     }
 
     post {
