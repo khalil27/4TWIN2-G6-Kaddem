@@ -75,7 +75,7 @@ pipeline {
             }
         }
 
-                stage('Push Docker Image to Nexus') {
+                /*stage('Push Docker Image to Nexus') {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                             script {
@@ -92,7 +92,7 @@ pipeline {
                             }
                         }
                     }
-                }
+                }*/
 
          stage('SonarQube Analysis') {
                             steps {
