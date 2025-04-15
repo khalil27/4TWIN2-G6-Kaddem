@@ -51,13 +51,14 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem")
-                }
-            }
+      stage('Build Docker Image') {
+    steps {
+        script {
+            def customImage = docker.build("kaddem-app:latest", ".")
         }
+    }
+}
+
 
         stage('Push Docker Image to Nexus') {
             steps {
