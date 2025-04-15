@@ -114,12 +114,13 @@ pipeline {
 
 
         stage('Deploy JAR to Nexus') {
-                       steps {
+            steps {
+                dir('kaddem/kaddem') {
+                    sh "$HOME/maven-local/bin/mvn deploy -DaltDeploymentRepository=deploymentRepo::default::${NEXUS_REPO}"
+                }
+            }
+        }
 
-                                    sh "mvn deploy -DaltDeploymentRepository=deploymentRepo::default::${NEXUS_REPO}"
-
-                            }
-                        }
 
 
 
