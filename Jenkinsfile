@@ -61,17 +61,17 @@ pipeline {
 }
 
 
-
-        stage('Push Docker Image to Nexus') {
-            steps {
-                script {
-                    docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
-                        def customImage = docker.image("kaddem-app:latest")
-                        customImage.push("latest")
-                    }
-                }
+stage('Push Docker Image to Nexus') {
+    steps {
+        script {
+            docker.withRegistry("http://${DOCKER_REGISTRY}", "nexus") {
+                def customImage = docker.image("kaddem-app:latest")
+                customImage.push("latest")
             }
         }
+    }
+}
+
 
         stage('SonarQube Analysis') {
             steps {
