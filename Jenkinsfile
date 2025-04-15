@@ -47,22 +47,34 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    def customImage = docker.build("${DOCKER_IMAGE}", "kaddem/kaddem/")
+                dir('kaddem/kaddem') {
+                    sh '''
+                        echo "📦 Construction de l'image Docker"
+                        docker build -t dhiaghouma/kaddem-app:latest .
+                    '''
                 }
             }
         }
 
-        stage('Push Docker Image to Nexus') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
-                script {
-                    docker.withRegistry("http://${DOCKER_REGISTRY}", "nexus") {
-                        def customImage = docker.image("${DOCKER_IMAGE}")
-                        customImage.push("latest")
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-dhia', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        sh '''
+                            echo "🔐 Connexion à Docker Hub"
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                            echo "📤 Push de l'image vers Docker Hub"
+                            docker push dhiaghouma/kaddem-app:latest
+
+                            echo "🚪 Déconnexion de Docker Hub"
+                            docker logout
+                        '''
                     }
                 }
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {
