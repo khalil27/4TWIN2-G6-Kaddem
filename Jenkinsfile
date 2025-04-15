@@ -1,21 +1,21 @@
 pipeline {
     agent any
     environment {
-    DOCKER_REGISTRY = "192.168.33.10:8083"
-}
+        DOCKER_REGISTRY = "192.168.33.10:8083"
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout([ 
-                    $class: 'GitSCM', 
-                    branches: [[name: '*/DhiaGhouma']], 
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/DhiaGhouma']],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git', 
+                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
                         credentialsId: 'git123'
                     ]]
                 ])
-                
+
                 sh '''
                     echo "Workspace contents:"
                     ls -la
@@ -24,27 +24,29 @@ pipeline {
                 '''
             }
         }
+
         stage('Download Maven') {
             steps {
                 sh '''
                     mkdir -p $HOME/maven-local
-                    
+
                     if [ ! -f $HOME/maven-local/bin/mvn ]; then
                         echo "Downloading Maven..."
                         wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
                         tar -xzf apache-maven-3.9.6-bin.tar.gz -C $HOME/maven-local --strip-components=1
                         rm apache-maven-3.9.6-bin.tar.gz
                     fi
-                    
+
                     $HOME/maven-local/bin/mvn -version
                 '''
             }
         }
+
         stage('Build') {
             steps {
                 sh '''
                     POM_FILE=$(find . -name "pom.xml" | head -1)
-                    
+
                     if [ -n "$POM_FILE" ]; then
                         POM_DIR=$(dirname "$POM_FILE")
                         echo "Building Maven project in directory: $POM_DIR"
@@ -57,44 +59,49 @@ pipeline {
                 '''
             }
         }
+
         stage('Build Docker Image') {
-    steps {
-        script {
-            def customImage = docker.build("kaddem-app:latest", ".")
-        }
-    }
-}
-        stage('Push Docker Image to Nexus') {
-    steps {
-        script {
-            docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
-                def customImage = docker.image("kaddem-app:latest")
-                customImage.push("latest")
+            steps {
+                script {
+                    echo 'Building Docker image...'
+                    // Save image reference to use in next stage
+                    env.IMAGE_NAME = "kaddem-app:latest"
+                    docker.build(env.IMAGE_NAME, ".")
+                }
             }
         }
-    }
-}
+
+        stage('Push Docker Image to Nexus') {
+            steps {
+                script {
+                    echo 'Pushing Docker image to Nexus...'
+                    docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
+                        docker.image(env.IMAGE_NAME).push("latest")
+                    }
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
-    steps {
-        script {
-            echo 'Running SonarQube analysis'
-            dir('kaddem/kaddem') {
-                withSonarQubeEnv('scanner') {
-                    sh '''
-                        /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/scanner/bin/sonar-scanner \
-                        -Dsonar.projectKey=sonar \
-                        -Dsonar.projectName=sonar \
-                        -Dsonar.sources=src \
-                        -Dsonar.java.binaries=target/classes
-                    '''
+            steps {
+                script {
+                    echo 'Running SonarQube analysis'
+                    dir('kaddem/kaddem') {
+                        withSonarQubeEnv('scanner') {
+                            sh '''
+                                /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/scanner/bin/sonar-scanner \
+                                -Dsonar.projectKey=sonar \
+                                -Dsonar.projectName=sonar \
+                                -Dsonar.sources=src \
+                                -Dsonar.java.binaries=target/classes
+                            '''
+                        }
+                    }
                 }
             }
         }
     }
-}
 
-    }
     post {
         always {
             archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
