@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REGISTRY = "docker.io"
-        DOCKER_IMAGE = "dhiaghouma/kaddem-app:latest"  // Your Docker Hub username/repo name
+        DOCKER_REGISTRY = "192.168.33.10:8083"  // Your Nexus Docker registry URL
+        DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
     }
 
     stages {
@@ -53,10 +53,10 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image to Docker Hub') {
+        stage('Push Docker Image to Nexus') {
             steps {
                 script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", "docker-hub-credentials") {
+                    docker.withRegistry("http://${DOCKER_REGISTRY}", "nexus") {
                         def customImage = docker.image("${DOCKER_IMAGE}")
                         customImage.push("latest")
                     }
