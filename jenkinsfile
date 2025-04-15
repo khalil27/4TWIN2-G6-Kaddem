@@ -89,6 +89,22 @@ stage('Build Docker Image') {
         }
     }
 
+stage('Run Application') {
+  steps {
+    script {
+      docker.withRegistry("http://${registry}", registryCredentials) {
+        // Pull l'image depuis le registre Nexus
+        sh "docker pull ${registry}/${imageName}:${imageTag}"
+
+        // Lancer les services avec Docker Compose
+        sh 'docker-compose up -d'
+      }
+    }
+  }
+}
+
+
+
 
 
     }
