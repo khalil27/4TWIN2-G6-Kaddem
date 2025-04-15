@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+    DOCKER_REGISTRY = "192.168.33.10:8083"
+}
+
     stages {
         stage('Checkout') {
             steps {
@@ -53,6 +57,17 @@ pipeline {
                 '''
             }
         }
+        stage('Push Docker Image to Nexus') {
+    steps {
+        script {
+            docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
+                def customImage = docker.image("kaddem-app:latest")
+                customImage.push("latest")
+            }
+        }
+    }
+}
+
         stage('SonarQube Analysis') {
     steps {
         script {
