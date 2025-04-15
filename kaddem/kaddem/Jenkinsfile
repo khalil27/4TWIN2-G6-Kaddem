@@ -107,6 +107,42 @@ stage('MVN Nexus') {
         }
     }
 }
+        stage('Build Docker Image') {
+    steps {
+        script {
+            def imageName = "khalilayari/kaddem-app"
+            def tag = "latest"
+
+            sh '''
+                echo "📦 Construction de l'image Docker"
+                docker build -t ''' + imageName + ':' + tag + ''' .
+            '''
+        }
+    }
+}
+
+        stage('Push Docker Image to Docker Hub') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            script {
+                def imageName = "khalilayari/kaddem-app"
+                def tag = "latest"
+
+                sh '''
+                    echo "🔐 Connexion à Docker Hub"
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                    echo "📤 Push de l'image vers Docker Hub"
+                    docker push ''' + imageName + ':' + tag + '''
+
+                    echo "🚪 Déconnexion de Docker Hub"
+                    docker logout
+                '''
+            }
+        }
+    }
+}
+
 
 
 
