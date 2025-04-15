@@ -10,6 +10,8 @@ pipeline {
               registryCredentials = "nexus"
               imageName = "kaddem-app"
               imageTag = "1.0"
+              NEXUS_USERNAME = credentials('admin')
+              NEXUS_PASSWORD = credentials('Khalil$200')
           }
     stages {
         stage('Checkout') {
