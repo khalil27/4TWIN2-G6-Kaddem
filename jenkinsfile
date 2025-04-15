@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         DOCKER_REGISTRY = "192.168.33.10:8083"  // Nexus Docker registry URL
-        DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
+        //DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
+        DOCKER_COMPOSE_VERSION = '1.29.2'
     }
 
     stages {
@@ -45,7 +46,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        /*stage('Build Docker Image') {
             steps {
                 dir('kaddem/kaddem') {
                     sh '''
@@ -73,7 +74,32 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
+        stage('Install Docker Compose (if needed)') {
+                    steps {
+                        sh '''
+                            if ! docker-compose --version; then
+                                echo "🛠 Installation de Docker Compose"
+                                sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                                sudo chmod +x /usr/local/bin/docker-compose
+                                docker-compose --version
+                            fi
+                        '''
+                    }
+                }
+
+                stage('Build and Run with Docker Compose') {
+                            steps {
+                                dir('kaddem/kaddem') {
+                                    sh '''
+                                        echo "🔧 Build et lancement des services via Docker Compose"
+                                        docker-compose down || true
+                                        docker-compose build
+                                        docker-compose up -d
+                                    '''
+                                }
+                            }
+                        }
 
                 /*stage('Push Docker Image to Nexus') {
                     steps {
