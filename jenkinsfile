@@ -101,6 +101,20 @@ sh('docker-compose up -d ')
 }
 }
 
+stage('Check Monitoring (Prometheus & Grafana)') {
+            steps {
+                script {
+                    echo "📡 Vérification de l'état de Prometheus et Grafana"
+                    sh '''
+                        echo "🔍 Checking Prometheus at http://192.168.33.10:9090/targets"
+                        curl -s -o /dev/null -w "%{http_code}" http://192.168.33.10:9090/targets
+
+                        echo "📊 Checking Grafana at http://192.168.33.10:3000"
+                        curl -s -o /dev/null -w "%{http_code}" http://192.168.33.10:3000
+                    '''
+                }
+            }
+        }
 
 
 
