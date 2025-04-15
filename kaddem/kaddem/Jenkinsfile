@@ -86,7 +86,7 @@ stage('Build') {
         }
 stage('MVN Nexus') {
     steps {
-        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+        withCredentials([usernamePassword(credentialsId: 'NEXUS_USER', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
             configFileProvider([configFile(fileId: 'maven-settings-nexus', variable: 'SETTINGS_XML')]) {
                 sh '''
                     echo "Affichage de la structure du répertoire avant le déploiement :"
