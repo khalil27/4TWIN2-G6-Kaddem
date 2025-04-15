@@ -51,13 +51,15 @@ pipeline {
             }
         }
 
-      stage('Build Docker Image') {
+     stage('Build Docker Image') {
     steps {
         script {
-def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem/")
+            // Set the correct build context to "kaddem/kaddem/"
+            def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem/")  // <-- Context is "kaddem/kaddem/"
         }
     }
 }
+
 
 
         stage('Push Docker Image to Nexus') {
