@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        //DOCKER_REGISTRY = "192.168.33.10:8083"  // Your Nexus Docker registry URL
+        DOCKER_REGISTRY = "192.168.33.10:8083"  // Your Nexus Docker registry URL
         DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
     }
 
