@@ -7,20 +7,20 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/DhiaGhouma']],
+                checkout([ 
+                    $class: 'GitSCM', 
+                    branches: [[name: '*/DhiaGhouma']], 
                     userRemoteConfigs: [[
-                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
+                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git', 
                         credentialsId: 'git123'
                     ]]
                 ])
-
+                
                 sh '''
                     echo "Workspace contents:"
                     ls -la
-                    echo "Looking for build files:"
-                    find . -name "pom.xml" -o -name "build.gradle"
+                    echo "Looking for pom.xml and Dockerfile:"
+                    find . -name "pom.xml" -o -name "Dockerfile"
                 '''
             }
         }
@@ -45,45 +45,30 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    POM_FILE=$(find . -name "pom.xml" | head -1)
-
-                    if [ -n "$POM_FILE" ]; then
-                        POM_DIR=$(dirname "$POM_FILE")
-                        echo "Building Maven project in directory: $POM_DIR"
-                        cd "$POM_DIR"
-                        $HOME/maven-local/bin/mvn clean package -DskipTests
-                    else
-                        echo "No pom.xml file found!"
-                        exit 1
-                    fi
+                    cd kaddem/kaddem
+                    $HOME/maven-local/bin/mvn clean package -DskipTests
                 '''
             }
         }
 
         stage('Build Docker Image') {
-    steps {
-        script {
-            echo 'Building Docker image...'
-            // Save the built image in a global env variable for reuse
-            def customImage = docker.build("kaddem-app:latest", ".")
-            // Save image reference using env var
-            env.IMAGE_NAME = "kaddem-app:latest"
-        }
-    }
-}
-
-stage('Push Docker Image to Nexus') {
-    steps {
-        script {
-            echo 'Pushing Docker image to Nexus...'
-            docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
-                def customImage = docker.image(env.IMAGE_NAME)
-                customImage.push("latest")
+            steps {
+                script {
+                    def customImage = docker.build("kaddem-app:latest", "kaddem/kaddem")
+                }
             }
         }
-    }
-}
 
+        stage('Push Docker Image to Nexus') {
+            steps {
+                script {
+                    docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
+                        def customImage = docker.image("kaddem-app:latest")
+                        customImage.push("latest")
+                    }
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {
