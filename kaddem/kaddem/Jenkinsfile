@@ -107,19 +107,17 @@ stage('MVN Nexus') {
         }
     }
 }
-        stage('Build Docker Image') {
+stage('Build Docker Image') {
     steps {
-        script {
-            def imageName = "khalilayari/kaddem-app"
-            def tag = "latest"
-
+        dir('kaddem/kaddem') {
             sh '''
                 echo "📦 Construction de l'image Docker"
-                docker build -t ''' + imageName + ':' + tag + ''' .
+                docker build -t khalilayari/kaddem-app:latest .
             '''
         }
     }
 }
+
 
         stage('Push Docker Image to Docker Hub') {
     steps {
