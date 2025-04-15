@@ -76,17 +76,18 @@ stage('Build Docker Image') {
     }
 }
 
-
-
-
     stage('Push to Nexus') {
-                steps {
-                    script {
-                        
-                        sh "docker push ${registry}/${imageName}:${imageTag}"
-                    }
-                }
+        steps {
+            script {
+                // Docker login explicit
+                sh """
+                    docker login -u ${NEXUS_USERNAME} -p ${NEXUS_PASSWORD} ${registry}
+                    docker push ${registry}/${imageName}:${imageTag}
+                """
             }
+        }
+    }
+
 
 
     }
