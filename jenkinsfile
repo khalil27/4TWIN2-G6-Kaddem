@@ -78,13 +78,12 @@ stage('Build Docker Image') {
 
 
 
-       
-     stage('Push to Nexus') {
+
+    stage('Push to Nexus') {
                 steps {
                     script {
-                        docker.withRegistry("http://${registry}", registryCredentials) {
-                            sh "docker push ${registry}/${imageName}:${imageTag}"
-                        }
+                        
+                        sh "docker push ${registry}/${imageName}:${imageTag}"
                     }
                 }
             }
