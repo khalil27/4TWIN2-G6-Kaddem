@@ -47,9 +47,13 @@ pipeline {
 stage('Build') {
     steps {
         sh '''
-            # Trouver le répertoire contenant pom.xml
-            POM_FILE="kaddem/kaddem/pom.xml"
+            # Afficher la structure des répertoires pour vérifier le bon emplacement
+            echo "Affichage de la structure du répertoire :"
+            ls -la
 
+            # Vérifier si pom.xml est présent dans le sous-dossier kaddem/kaddem
+            POM_FILE="kaddem/kaddem/pom.xml"
+            
             if [ -f "$POM_FILE" ]; then
                 echo "Building Maven project in: kaddem/kaddem"
                 cd kaddem/kaddem
