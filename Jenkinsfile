@@ -61,26 +61,29 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    echo 'Building Docker image...'
-                    // Save image reference to use in next stage
-                    env.IMAGE_NAME = "kaddem-app:latest"
-                    docker.build(env.IMAGE_NAME, ".")
-                }
-            }
+    steps {
+        script {
+            echo 'Building Docker image...'
+            // Save the built image in a global env variable for reuse
+            def customImage = docker.build("kaddem-app:latest", ".")
+            // Save image reference using env var
+            env.IMAGE_NAME = "kaddem-app:latest"
         }
+    }
+}
 
-        stage('Push Docker Image to Nexus') {
-            steps {
-                script {
-                    echo 'Pushing Docker image to Nexus...'
-                    docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
-                        docker.image(env.IMAGE_NAME).push("latest")
-                    }
-                }
+stage('Push Docker Image to Nexus') {
+    steps {
+        script {
+            echo 'Pushing Docker image to Nexus...'
+            docker.withRegistry("http://${DOCKER_REGISTRY}", '') {
+                def customImage = docker.image(env.IMAGE_NAME)
+                customImage.push("latest")
             }
         }
+    }
+}
+
 
         stage('SonarQube Analysis') {
             steps {
