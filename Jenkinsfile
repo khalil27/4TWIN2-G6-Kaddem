@@ -61,20 +61,17 @@ pipeline {
 }
 
 
-stage('Push Docker Image to Docker Hub') {
+stage('Push Docker Image to Nexus') {
     steps {
         script {
-            // Docker Hub registry
-            def dockerHubRegistry = "docker.io"
-            
-            // Push the Docker image to Docker Hub
-            docker.withRegistry("https://${dockerHubRegistry}", "docker-hub-credentials") {
+            docker.withRegistry("http://${DOCKER_REGISTRY}", "nexus") {
                 def customImage = docker.image("kaddem-app:latest")
                 customImage.push("latest")
             }
         }
     }
 }
+
 
         stage('SonarQube Analysis') {
             steps {
