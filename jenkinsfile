@@ -1,54 +1,110 @@
 pipeline {
     agent any
-
-    tools {
-    maven 'M2_HOME'
-
+    environment {
+        //DOCKER_REGISTRY = "192.168.33.10:8083"  // Your Nexus Docker registry URL
+        DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'YosrMekki-4TWIN2-G6',
-                    url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/YosrMekki-4TWIN2-G6']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/khalil27/4TWIN2-G6-Kaddem.git',
+                        credentialsId: 'git123'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Download Maven') {
+            steps {
+                sh '''
+                    mkdir -p $HOME/maven-local
+
+                    if [ ! -f $HOME/maven-local/bin/mvn ]; then
+                        echo "Downloading Maven..."
+                        wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+                        tar -xzf apache-maven-3.9.6-bin.tar.gz -C $HOME/maven-local --strip-components=1
+                        rm apache-maven-3.9.6-bin.tar.gz
+                    fi
+
+                    $HOME/maven-local/bin/mvn -version
+                '''
             }
         }
 
         stage('Build') {
             steps {
-            dir('kaddem/kaddem') {
-                sh 'mvn clean compile'
+                sh '''
+                    cd kaddem/kaddem
+                    $HOME/maven-local/bin/mvn clean package -DskipTests
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('kaddem/kaddem') {
+                    sh '''
+                        echo "📦 Construction de l'image Docker"
+                        docker build -t mekkiyosr/kaddem-app:latest .
+                    '''
                 }
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
-            dir('kaddem/kaddem') {
-                sh 'mvn test'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        sh '''
+                            echo "🔐 Connexion à Docker Hub"
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                            echo "📤 Push de l'image vers Docker Hub"
+                            docker push mekkiyosr/kaddem-app:latest
+
+                            echo "🚪 Déconnexion de Docker Hub"
+                            docker logout
+                        '''
+                    }
                 }
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def scannerHome = tool 'scanner'
-                    withSonarQubeEnv('SonarQube') {
-                    dir('kaddem/kaddem'){
-                        sh "${scannerHome}/bin/sonar-scanner"
+                    echo 'Running SonarQube analysis'
+                    dir('kaddem/kaddem') {
+                        withSonarQubeEnv('scanner') {
+                            sh '''
+                                /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/scanner/bin/sonar-scanner \
+                                -Dsonar.projectKey=sonar \
+                                -Dsonar.projectName=sonar \
+                                -Dsonar.sources=src \
+                                -Dsonar.java.binaries=target/classes
+                            '''
                         }
                     }
                 }
             }
         }
+    }
 
-                stage('Build Docker Image') {
-                    steps {
-                        script {
-                            sh 'docker-compose build'
-                        }
-                    }
-                }
+    post {
+        always {
+            archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+        }
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for more information.'
+        }
     }
 }
