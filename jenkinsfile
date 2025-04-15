@@ -1,7 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REGISTRY = "192.168.33.10:8083"  // Nexus Docker registry URL
+        registryCredentials = "nexus"
+        registry = "192.168.33.10:8083"
+        //DOCKER_REGISTRY = "192.168.33.10:8083"  // Nexus Docker registry URL
         //DOCKER_IMAGE = "kaddem-app:latest"      // Docker image name
         DOCKER_COMPOSE_VERSION = '1.29.2'
     }
@@ -101,24 +103,29 @@ pipeline {
                             }
                         }
 
-                /*stage('Push Docker Image to Nexus') {
-                    steps {
-                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                            script {
-                                sh '''
-                                    echo "🔐 Connexion à Nexus Docker Registry"
-                                    echo "$NEXUS_PASS" | docker login 192.168.33.10:8083 -u "$NEXUS_USER" --password-stdin
+         stage('Tag Docker Image for Nexus') {
+                     steps {
+                         sh '''
+                             echo "🏷️ Tag de l'image pour Nexus"
+                             docker tag mekkiyosr/kaddem-app:latest 192.168.33.10:8083/kaddem/kaddem-app:latest
+                         '''
+                     }
+                 }
 
-                                    echo "📤 Push de l'image vers Nexus"
-                                    docker push 192.168.33.10:8083/kaddem/kaddem-app:latest
+         stage('Push Docker Image to Nexus') {
+                             steps {
+                                 script {
+                                     def registry = "192.168.33.10:8083"
+                                     def imageName = "kaddem/kaddem-app:latest"
+                                     def registryCredentials = "nexus-credentials"
 
-                                    echo "🚪 Déconnexion de Nexus"
-                                    docker logout 192.168.33.10:8083
-                                '''
-                            }
-                        }
-                    }
-                }*/
+                                     docker.withRegistry("http://${registry}", registryCredentials) {
+                                         def customImage = docker.image("${registry}/${imageName}")
+                                         customImage.push()
+                                     }
+                                 }
+                             }
+                         }
 
          stage('SonarQube Analysis') {
                             steps {
