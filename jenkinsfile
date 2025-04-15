@@ -97,17 +97,21 @@ pipeline {
                 script {
                     docker.withRegistry("http://${registry}", registryCredentials) {
                         sh """
-                            echo "Pulling image from Nexus..."
+                            echo "🛠 Pulling image from Nexus..."
                             docker pull ${registry}/kaddem/kaddem-app:latest
 
-                            echo "Deploying with Docker Compose..."
-                            docker-compose down || true
-                            docker-compose up -d
+                            echo " Tagging pulled image with local name..."
+                            docker tag ${registry}/kaddem/kaddem-app:latest kaddem_yosrmekki-4twin2-g6_kaddem-app
+
+                            echo "Restarting services with Docker Compose..."
+                            docker-compose -f kaddem/kaddem/docker-compose.yml down || true
+                            docker-compose -f kaddem/kaddem/docker-compose.yml up -d
                         """
                     }
                 }
             }
         }
+
 
         stage('Deploy JAR to Nexus') {
                        steps {
