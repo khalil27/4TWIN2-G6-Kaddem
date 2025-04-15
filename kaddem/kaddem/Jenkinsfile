@@ -62,7 +62,7 @@ pipeline {
 
 stage('MVN Sonarqube') {
             steps {
-                withSonarQubeEnv('sq1') {
+                withSonarQubeEnv('sonarkhalil') {
                     withCredentials([string(credentialsId: 'git12345', variable: 'jenkins')]) {
                         sh '''
                             mvn clean verify sonar:sonar \
