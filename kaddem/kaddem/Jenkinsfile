@@ -44,24 +44,23 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh '''
-                    POM_FILE=$(find . -name "pom.xml" | head -1)
+stage('Build') {
+    steps {
+        sh '''
+            # Trouver le répertoire contenant pom.xml
+            POM_FILE="kaddem/kaddem/pom.xml"
 
-                    if [ -n "$POM_FILE" ]; then
-                        POM_DIR=$(dirname "$POM_FILE")
-                        echo "Building Maven project in: $POM_DIR"
-                        cd "$POM_DIR"
-                        $HOME/maven-local/bin/mvn clean package -DskipTests
-                        echo "$POM_DIR" > /tmp/pom_path.txt
-                    else
-                        echo "No pom.xml found!"
-                        exit 1
-                    fi
-                '''
-            }
-        }
+            if [ -f "$POM_FILE" ]; then
+                echo "Building Maven project in: kaddem/kaddem"
+                cd kaddem/kaddem
+                $HOME/maven-local/bin/mvn clean package -DskipTests
+            else
+                echo "No pom.xml found in kaddem/kaddem!"
+                exit 1
+            fi
+        '''
+    }
+}
 
         stage('MVN Sonarqube') {
             steps {
