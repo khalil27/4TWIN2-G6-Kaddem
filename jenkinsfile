@@ -27,7 +27,7 @@ pipeline {
                     mkdir -p $HOME/maven-local
 
                     if [ ! -f $HOME/maven-local/bin/mvn ]; then
-                        echo "📥 Downloading Maven..."
+                        echo " Downloading Maven..."
                         wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
                         tar -xzf apache-maven-3.9.6-bin.tar.gz -C $HOME/maven-local --strip-components=1
                         rm apache-maven-3.9.6-bin.tar.gz
@@ -75,7 +75,7 @@ pipeline {
         stage('Tag Docker Image for Nexus') {
             steps {
                 sh '''
-                    echo "🏷️ Tagging the image for Nexus"
+                    echo " Tagging the image for Nexus"
                     docker tag mekkiyosr/kaddem-app:latest ${registry}/kaddem/kaddem-app:latest
                 '''
             }
@@ -92,6 +92,23 @@ pipeline {
             }
         }
 
+        stage('Deploy') {
+            steps {
+                script {
+                    docker.withRegistry("http://${registry}", registryCredentials) {
+                        sh """
+                            echo "Pulling image from Nexus..."
+                            docker pull ${registry}/kaddem/kaddem-app:latest
+
+                            echo "Deploying with Docker Compose..."
+                            docker-compose down || true
+                            docker-compose up -d
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Deploy JAR to Nexus') {
                        steps {
 
@@ -99,6 +116,8 @@ pipeline {
 
                             }
                         }
+
+
 
         stage('SonarQube Analysis') {
             steps {
