@@ -112,18 +112,17 @@ stage('Build Docker Image') {
         dir('kaddem/kaddem') {
             sh '''
                 echo "📦 Construction de l'image Docker"
-                docker build -t khalilayari/kaddem-app:latest .
+                docker build -t ayarikhalil/kaddem-app:latest .
             '''
         }
     }
 }
 
-
-        stage('Push Docker Image to Docker Hub') {
+stage('Push Docker Image to Docker Hub') {
     steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             script {
-                def imageName = "khalilayari/kaddem-app"
+                def imageName = "ayarikhalil/kaddem-app"
                 def tag = "latest"
 
                 sh '''
